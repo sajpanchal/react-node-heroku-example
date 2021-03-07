@@ -3,10 +3,14 @@ const sendgrid = require("@sendgrid/mail");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const path = require("path");
+const logger = require("morgan");
 const app = express();
+var nodemailer = require("nodemailer");
 
 //React build app setup
 app.use(express.static(path.join(__dirname, "build"))); // serve all static files from build
+
+app.use(logger("dev"));
 
 app.get("/*", (req, res) => {
   res.sendFile(path.join(__dirname, "build", "index.html")); // this will keep our client side routing functional.
@@ -31,6 +35,7 @@ app.get("/api", (req, res, next) => {
 });
 
 //post request
+/*
 app.post("/api/email", (req, res, next) => {
   sendgrid.setApiKey(
     "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"
@@ -54,7 +59,37 @@ app.post("/api/email", (req, res, next) => {
         error: error,
       });
     });
+});*/
+
+var transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "codejunxion@gmail.com",
+    pass: "c0d3jUnx1on",
+  },
 });
+
+app.post("/api/email", (req, res, next) => {
+  var mailOptions = {
+    from: "sajpanchal@gmail.com",
+    to: "sajpanchal2020@outlook.com",
+    subject: req.body.subject,
+    html: `<strong>sender: ${req.body.email}</strong><br>Message: <strong>${req.body.message}</strong>`,
+  };
+
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      res.status(400).json({
+        error: error,
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+      });
+    }
+  });
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, "0.0.0.0");
 console.log("hellp");
